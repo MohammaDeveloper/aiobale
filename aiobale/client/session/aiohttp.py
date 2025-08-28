@@ -252,3 +252,6 @@ class AiohttpSession(BaseSession):
         if self.session:
             await self.session.close()
         self.session = None
+
+    def change_proxy(self, proxy: str) -> None:
+        self.session._default_proxy = proxy

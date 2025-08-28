@@ -220,3 +220,7 @@ class BaseSession(abc.ABC):
     @abc.abstractmethod
     def is_closed(self) -> bool:
         pass
+
+    @abc.abstractmethod
+    def change_proxy(self, proxy: str) -> None:
+        pass
