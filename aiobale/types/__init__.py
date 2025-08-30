@@ -58,6 +58,8 @@ from .gift_packet import GiftPacket
 from .winner import Winner
 from .inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 from .upvote import Upvote
+from .avatar import Avatar
+from .image import Image
 
 
 __all__ = (
@@ -136,5 +138,7 @@ __all__ = (
     "InlineKeyboardMarkup",
     "InlineKeyboardButton",
     "TemplateMessage",
-    "Upvote"
+    "Upvote",
+    "Avatar",
+    "Image"
 )

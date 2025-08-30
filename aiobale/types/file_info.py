@@ -1,7 +1,8 @@
 from __future__ import annotations
+import pathlib
 
 from pydantic import Field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, BinaryIO, Optional, Union
 
 from .base import BaleObject
 from .values import IntValue
@@ -25,8 +26,7 @@ class FileInfo(BaleObject):
     """Access hash used to securely access or validate the file."""
 
     file_storage_version: IntValue = Field(
-        default_factory=lambda: IntValue(value=1),
-        alias="3"
+        default_factory=lambda: IntValue(value=1), alias="3"
     )
     """Version of the file storage format. Defaults to 1."""
 
@@ -47,3 +47,15 @@ class FileInfo(BaleObject):
                 file_storage_version=file_storage_version,
                 **__pydantic_kwargs,
             )
+
+    async def download(
+        self,
+        destination: Optional[Union[BinaryIO, pathlib.Path, str]] = None,
+        seek: bool = True,
+    ) -> Optional[BinaryIO]:
+        return await self.client.download_file(
+            file_id=self.file_id,
+            access_hash=self.access_hash,
+            destination=destination,
+            seek=seek,
+        )

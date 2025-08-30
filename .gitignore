@@ -195,3 +195,4 @@ cython_debug/
 
 # Added
 test_/
+test.py

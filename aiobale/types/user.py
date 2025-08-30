@@ -5,6 +5,7 @@ from .base import BaleObject
 from .int_bool import IntBool
 from .full_user import ExInfo
 from .values import StringValue
+from .avatar import Avatar
 
 
 class UserAuth(BaleObject):
@@ -66,6 +67,9 @@ class User(BaleObject):
 
     sex: Optional[int] = Field(None, alias="5")
     """User's sex as an integer code (e.g., 0 = unknown, 1 = male, 2 = female)."""
+    
+    avatar: Optional[Avatar] = Field(None, alias="6")
+    """User's avatar."""
 
     is_bot: IntBool = Field(False, alias="7")
     """Flag indicating if the user is a bot account."""
