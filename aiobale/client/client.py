@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass, field
 import io
 import json
+import warnings
 import pathlib
 import signal
 import sys
@@ -848,7 +849,6 @@ class Client:
         text: str,
         chat_id: int,
         chat_type: ChatType,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
         message_id: Optional[int] = None,
     ) -> Message:
@@ -876,13 +876,6 @@ class Client:
         self._ignored_messages.targets.append(message_id)
 
         content = MessageContent(text=TextMessage(value=text))
-
-        if reply_markup:
-            content = MessageContent(
-                bot_message=TemplateMessage(
-                    message=content, inline_keyboard_markup=reply_markup
-                )
-            )
 
         if reply_to is not None:
             reply_to = self._ensure_info_message(reply_to)
@@ -3131,7 +3124,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         message_id: Optional[int] = None,
         send_type: SendType = SendType.DOCUMENT,
         thumb: Optional[Thumbnail] = None,
@@ -3170,13 +3162,6 @@ class Client:
 
         content = MessageContent(document=document)
 
-        if reply_markup:
-            content = MessageContent(
-                bot_message=TemplateMessage(
-                    message=content, inline_keyboard_markup=reply_markup
-                )
-            )
-
         if reply_to is not None:
             reply_to = self._ensure_info_message(reply_to)
 
@@ -3198,7 +3183,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         message_id: Optional[int] = None,
         use_own_content: bool = False,
     ) -> Message:
@@ -3228,7 +3212,6 @@ class Client:
             reply_to=reply_to,
             message_id=message_id,
             send_type=SendType.DOCUMENT,
-            reply_markup=reply_markup,
             use_own_content=use_own_content,
         )
 
@@ -3251,7 +3234,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         cover_thumb: Optional[FileInput] = None,
         cover_width: int = 1000,
         cover_height: int = 1000,
@@ -3292,7 +3274,6 @@ class Client:
             chat_type=chat_type,
             caption=caption,
             reply_to=reply_to,
-            reply_markup=reply_markup,
             message_id=message_id,
             send_type=SendType.PHOTO,
             thumb=cover_thumb,
@@ -3306,7 +3287,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         cover_thumb: Optional[FileInput] = None,
         cover_width: int = 1000,
         cover_height: int = 1000,
@@ -3351,7 +3331,6 @@ class Client:
             chat_type=chat_type,
             caption=caption,
             reply_to=reply_to,
-            reply_markup=reply_markup,
             message_id=message_id,
             send_type=SendType.VIDEO,
             thumb=cover_thumb,
@@ -3365,7 +3344,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         duration: Optional[int] = None,
         message_id: Optional[int] = None,
     ) -> Message:
@@ -3394,7 +3372,6 @@ class Client:
             chat_type=chat_type,
             caption=caption,
             reply_to=reply_to,
-            reply_markup=reply_markup,
             message_id=message_id,
             send_type=SendType.VOICE,
             ext=ext,
@@ -3407,7 +3384,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         duration: Optional[int] = None,
         album: Optional[str] = None,
         genre: Optional[str] = None,
@@ -3444,7 +3420,6 @@ class Client:
             chat_type=chat_type,
             caption=caption,
             reply_to=reply_to,
-            reply_markup=reply_markup,
             message_id=message_id,
             send_type=SendType.AUDIO,
             ext=ext,
@@ -3457,7 +3432,6 @@ class Client:
         chat_type: ChatType,
         caption: Optional[str] = None,
         reply_to: Optional[Union[Message, InfoMessage]] = None,
-        reply_markup: Optional[InlineKeyboardMarkup] = None,
         cover_thumb: Optional[FileInput] = None,
         cover_width: int = 1000,
         cover_height: int = 1000,
@@ -3501,7 +3475,6 @@ class Client:
             chat_type=chat_type,
             caption=caption,
             reply_to=reply_to,
-            reply_markup=reply_markup,
             message_id=message_id,
             send_type=SendType.GIF,
             thumb=cover_thumb,
