@@ -14,6 +14,7 @@ from .reset_contacts import ResetContacts
 from .remove_contact import RemoveContact
 from .add_contact import AddContact
 from .get_contacts import GetContacts
+from .edit_avatar import EditAvatar
 
 
 __all__ = (
@@ -32,5 +33,6 @@ __all__ = (
     "ResetContacts",
     "RemoveContact",
     "AddContact",
-    "GetContacts"
+    "GetContacts",
+    "EditAvatar",
 )
