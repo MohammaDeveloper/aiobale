@@ -29,6 +29,7 @@ from .open_packet import PacketResponse
 from .upvote_response import UpvoteResponse
 from .upvoters_response import UpvotersResponse
 from .avatar import AvatarResponse
+from .load_avatars import LoadAvatarsResponse
 
 
 __all__ = (
@@ -63,5 +64,6 @@ __all__ = (
     "PacketResponse",
     "UpvoteResponse",
     "UpvotersResponse",
-    "AvatarResponse"
+    "AvatarResponse",
+    "LoadAvatarsResponse"
 )
