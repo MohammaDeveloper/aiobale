@@ -4,7 +4,6 @@ import asyncio
 from dataclasses import dataclass, field
 import io
 import json
-import warnings
 import pathlib
 import signal
 import sys
@@ -113,6 +112,7 @@ from ..methods import (
     UpvotePost,
     RevokeUpvotedPost,
     GetMessageUpvoters,
+    EditAvatar
 )
 from ..types import (
     MessageContent,
@@ -165,8 +165,7 @@ from ..types import (
     UpdateBody,
     Request,
     GiftPacket,
-    InlineKeyboardMarkup,
-    TemplateMessage,
+    Avatar,
     Upvote,
 )
 from ..types.responses import (
@@ -201,6 +200,7 @@ from ..types.responses import (
     PacketResponse,
     UpvoteResponse,
     UpvotersResponse,
+    AvatarResponse
 )
 from ..enums import (
     ChatType,
@@ -481,7 +481,9 @@ class Client:
             try:
                 await self.session.send_bytes(data, f"ping_{ping_id}")
             except RuntimeError:
-                logger.warning(f"Ping failed. Closing session to trigger restart. (Client: {self.id})")
+                logger.warning(
+                    f"Ping failed. Closing session to trigger restart. (Client: {self.id})"
+                )
                 await self._cleanup_session()
 
     async def _ping_loop(self, interval=5):
@@ -551,11 +553,15 @@ class Client:
                         try:
                             await listen_task
                         except asyncio.CancelledError:
-                            logger.info(f"Listening task cancelled (Client: {self.id}).")
+                            logger.info(
+                                f"Listening task cancelled (Client: {self.id})."
+                            )
                             break
 
             except KeyboardInterrupt:
-                logger.info(f"KeyboardInterrupt received, stopping client (Client: {self.id})...")
+                logger.info(
+                    f"KeyboardInterrupt received, stopping client (Client: {self.id})..."
+                )
                 await self.stop()
             except Exception as e:
                 logger.error(f"Unhandled exception in start (Client: {self.id}): {e}")
@@ -3056,7 +3062,7 @@ class Client:
             name=name,
             mime_type=mime_type,
             chat=chat,
-            send_type=SendTypeModel(type=send_type),
+            send_type=send_type and SendTypeModel(type=send_type),
         )
         return await self(call)
 
@@ -3067,6 +3073,8 @@ class Client:
         chat_type: Optional[ChatType] = None,
         send_type: Optional[SendType] = None,
         progress_callback: Optional[Callable[[int, Optional[int]], None]] = None,
+        mime_type: Optional[str] = None,
+        name: Optional[str] = None,
     ) -> FileDetails:
         """
         Uploads a file to Bale servers and returns its metadata.
@@ -3095,8 +3103,8 @@ class Client:
 
         upload_info = await self.get_file_upload_url(
             size=file_info.size,
-            name=file_info.name,
-            mime_type=file_info.mime_type,
+            name=name or file_info.name,
+            mime_type=mime_type or file_info.mime_type,
             chat=chat,
             send_type=send_type,
         )
@@ -3650,3 +3658,18 @@ class Client:
         call = GetMessageUpvoters(message=message, load_more_state=state)
 
         return await self(call)
+
+    async def edit_avatar(self, file: Union[FileInfo, FileInput]) -> Optional[Avatar]:
+        if isinstance(file, FileInput):
+            file_details = await self.upload_file(
+                file=file,
+                chat_id=self.id,
+                chat_type=ChatType.PRIVATE,
+            )
+            file_info = FileInfo(file_id=file_details.file_id, access_hash=file_details.access_hash)
+        else:
+            file_info = file
+            
+        call = EditAvatar(file=file_info)
+        result: AvatarResponse = await self(call)
+        return result.avatar
