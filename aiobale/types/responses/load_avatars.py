@@ -6,7 +6,7 @@ from ..avatar import Avatar
 
 
 class LoadAvatarsResponse(BaleObject):
-    avatars: List[Avatar] = Field(None, alias="1")
+    avatars: List[Avatar] = Field(default_factory=list, alias="1")
 
     if TYPE_CHECKING:
         # This init is only used for type checking and IDE autocomplete.

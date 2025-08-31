@@ -114,6 +114,7 @@ from ..methods import (
     GetMessageUpvoters,
     EditAvatar,
     RemoveAvatar,
+    LoadAvatars,
 )
 from ..types import (
     MessageContent,
@@ -202,6 +203,7 @@ from ..types.responses import (
     UpvoteResponse,
     UpvotersResponse,
     AvatarResponse,
+    LoadAvatarsResponse,
 )
 from ..enums import (
     ChatType,
@@ -3680,3 +3682,8 @@ class Client:
     async def remove_avatar(self, avatar_id: int) -> DefaultResponse:
         call = RemoveAvatar(avatar_id=IntValue(value=avatar_id))
         return await self(call)
+
+    async def load_avatars(self, chat_id: int, chat_type: ChatType) -> List[Avatar]:
+        call = LoadAvatars(peer=Peer(id=chat_id, type=chat_type))
+        result: LoadAvatarsResponse = await self(call)
+        return result.avatars
