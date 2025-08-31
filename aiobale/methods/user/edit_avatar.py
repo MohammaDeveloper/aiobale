@@ -1,4 +1,5 @@
 from pydantic import Field
+
 from ...types.responses import AvatarResponse
 from ...types import FileInfo
 from ...enums import Services
