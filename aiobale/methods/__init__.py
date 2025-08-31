@@ -32,6 +32,7 @@ from .user import (
     GetContacts,
     EditAvatar,
     RemoveAvatar,
+    LoadAvatars,
 )
 from .abacus import (
     GetMessagesReactions,
@@ -164,4 +165,5 @@ __all__ = (
     "RevokeUpvotedPost",
     "EditAvatar",
     "RemoveAvatar",
+    "LoadAvatars"
 )
