@@ -19,6 +19,11 @@ class LoadAvatarsResponse(BaleObject):
     @model_validator(mode="before")
     @classmethod
     def _normalize_lists(cls, data: Dict[str, Any]) -> Dict[str, Any]:
-        if "1" in data and not isinstance(data["1"], list):
-            data["1"] = [data["1"]]
+        key = "1"
+        value = data.get(key, [])
+        if isinstance(value, dict):
+            value = value.get(key, [])
+        if not isinstance(value, list):
+            value = [value] if value else []
+        data[key] = value
         return data

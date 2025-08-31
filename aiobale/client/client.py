@@ -3684,6 +3684,6 @@ class Client:
         return await self(call)
 
     async def load_avatars(self, chat_id: int, chat_type: ChatType) -> List[Avatar]:
-        call = LoadAvatars(peer=Peer(id=chat_id, type=chat_type))
+        call = LoadAvatars(peer=InfoPeer(id=chat_id, type=chat_type))
         result: LoadAvatarsResponse = await self(call)
         return result.avatars
