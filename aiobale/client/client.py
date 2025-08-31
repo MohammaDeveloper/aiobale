@@ -112,7 +112,8 @@ from ..methods import (
     UpvotePost,
     RevokeUpvotedPost,
     GetMessageUpvoters,
-    EditAvatar
+    EditAvatar,
+    RemoveAvatar,
 )
 from ..types import (
     MessageContent,
@@ -200,7 +201,7 @@ from ..types.responses import (
     PacketResponse,
     UpvoteResponse,
     UpvotersResponse,
-    AvatarResponse
+    AvatarResponse,
 )
 from ..enums import (
     ChatType,
@@ -3666,10 +3667,16 @@ class Client:
                 chat_id=self.id,
                 chat_type=ChatType.PRIVATE,
             )
-            file_info = FileInfo(file_id=file_details.file_id, access_hash=file_details.access_hash)
+            file_info = FileInfo(
+                file_id=file_details.file_id, access_hash=file_details.access_hash
+            )
         else:
             file_info = file
-            
+
         call = EditAvatar(file=file_info)
         result: AvatarResponse = await self(call)
         return result.avatar
+
+    async def remove_avatar(self, avatar_id: int) -> DefaultResponse:
+        call = RemoveAvatar(avatar_id=IntValue(value=avatar_id))
+        return await self(call)
