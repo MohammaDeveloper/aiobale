@@ -62,7 +62,7 @@ class BaseSession(abc.ABC):
         decoder: _Decoder = ProtoBuf().decode,
         encoder: _Encoder = ProtoBuf().encode,
         timeout: float = DEFAULT_TIMEOUT,
-        show_update_errors: bool = False
+        show_update_errors: bool = False,
     ) -> None:
         self.ws_url = ws_url
         self.post_url = post_url
@@ -185,6 +185,7 @@ class BaseSession(abc.ABC):
         method: BaleMethod[BaleType],
         just_bale_type: bool = False,
         token: Optional[str] = None,
+        timeout: Optional[int] = None,
     ) -> Union[bytes, str, BaleType]:
         pass
 
@@ -216,7 +217,7 @@ class BaseSession(abc.ABC):
         self, data: bytes, future_key: str, timeout: Optional[int] = None
     ) -> Any:
         pass
-    
+
     @abc.abstractmethod
     def is_closed(self) -> bool:
         pass

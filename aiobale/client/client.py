@@ -451,14 +451,14 @@ class Client:
                 auth_cli = PhoneLoginCLI(self)
                 await auth_cli.start()
 
-    async def __call__(self, method: BaleMethod[BaleType]):
+    async def __call__(self, method: BaleMethod[BaleType], timeout: Optional[int] = None):
         if not self.session.running:
             await self._ensure_token_exists()
             return await self.session.post(
-                method=method, just_bale_type=True, token=self.__token
+                method=method, just_bale_type=True, token=self.__token, timeout=timeout
             )
 
-        return await self.session.make_request(method)
+        return await self.session.make_request(method, timeout=timeout)
 
     async def _cleanup_session(self):
         if self.session and not self.session.is_closed():
@@ -515,9 +515,6 @@ class Client:
         Args:
             run_in_background (bool, optional): If True, starts listening in a background task;
                 otherwise, listens in the current coroutine. Defaults to False.
-        Raises:
-            BaleError: If the server returns an error during connection or handshake.
-            AiobaleError: For client-side errors such as invalid token or session issues.
         Returns:
             None
         This method ensures the authentication token exists, connects to the server, performs the handshake,
@@ -710,6 +707,7 @@ class Client:
         device_hash: str = "ce5ced83-a9ab-47fa-80c8-ed425eeb2ace",
         api_key: str = "C28D46DC4C3A7A26564BFCC48B929086A95C93C98E789A19847BEE8627DE4E7D",
         app_id: int = 4,
+        timeout: Optional[int] = None
     ) -> Union[PhoneAuthResponse, AuthErrors]:
         """
         Initiates phone authentication by sending a code to the specified phone number.
@@ -720,10 +718,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.PhoneAuthResponse: Contains transaction hash and other authentication details.
-
-        Raises:
-            BaleError: If the server returns an error during authentication.
-            AiobaleError: If the phone number is banned or other client-side errors occur.
         """
         call = StartPhoneAuth(
             phone_number=phone_number,
@@ -763,10 +757,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.ValidateCodeResponse: Contains JWT token and user authentication data.
-
-        Raises:
-            BaleError: If the server returns an error during validation.
-            AiobaleError: For invalid code, password requirement, or client-side errors.
         """
         call = ValidateCode(code=code, transaction_hash=transaction_hash)
 
@@ -800,10 +790,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.ValidateCodeResponse: Contains JWT token and user authentication data.
-
-        Raises:
-            BaleError: If the server returns an error during validation.
-            AiobaleError: For wrong password or client-side errors.
         """
         call = ValidatePassword(password=password, transaction_hash=transaction_hash)
 
@@ -831,10 +817,6 @@ class Client:
         Args:
             delete_session (bool, optional): Whether to delete the local session file after sign out.
                 Defaults to True.
-
-        Raises:
-            OSError: If the session file deletion fails due to an OS-level error.
-            Exception: Any unexpected exceptions during stopping the client or file deletion.
         """
         call = SignOut()
         await self.session.post(call, just_bale_type=True, token=self.__token)
@@ -873,10 +855,6 @@ class Client:
 
         Returns:
             aiobale.types.Message: The sent message object.
-
-        Raises:
-            BaleError: If the server returns an error during sending.
-            AiobaleError: For client-side errors.
         """
         chat = self._build_chat(chat_id, chat_type)
         peer = self._resolve_peer(chat)
@@ -943,10 +921,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error during editing.
-            AiobaleError: For client-side errors.
         """
         peer_type = self._resolve_peer_type(chat_type)
         peer = Peer(type=peer_type, id=chat_id)
@@ -976,10 +950,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the delete operation.
-
-        Raises:
-            BaleError: If the server returns an error during deletion.
-            AiobaleError: If input lists are empty or for other client-side errors.
         """
         if not message_ids or not message_dates:
             raise AiobaleError("`message_ids` or `message_dates` can not be empty")
@@ -1016,10 +986,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the delete operation.
-
-        Raises:
-            BaleError: If the server returns an error during deletion.
-            AiobaleError: For client-side errors.
         """
         return await self.delete_messages(
             message_ids=[message_id],
@@ -1047,10 +1013,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the forward operation.
-
-        Raises:
-            BaleError: If the server returns an error during forwarding.
-            AiobaleError: If input lists are empty or mismatched, or for other client-side errors.
         """
         if not messages:
             raise AiobaleError("`messages` cannot be empty")
@@ -1082,9 +1044,6 @@ class Client:
 
         Returns:
             aiobale.types.InfoMessage: The InfoMessage representation of the input.
-
-        Raises:
-            AiobaleError: For client-side errors.
         """
         if isinstance(message, InfoMessage):
             if rewrite_date and isinstance(message.date, IntValue):
@@ -1114,9 +1073,6 @@ class Client:
 
         Returns:
             aiobale.types.OtherMessage: The OtherMessage representation.
-
-        Raises:
-            AiobaleError: For client-side errors.
         """
         if isinstance(message, OtherMessage):
             if seq is not None:
@@ -1144,10 +1100,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the forward operation.
-
-        Raises:
-            BaleError: If the server returns an error during forwarding.
-            AiobaleError: For client-side errors.
         """
         new_ids = [new_id] if new_id is not None else None
 
@@ -1165,10 +1117,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the seen operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer_type = self._resolve_peer_type(chat_type)
         peer = Peer(id=chat_id, type=peer_type)
@@ -1187,10 +1135,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the clear operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer_type = self._resolve_peer_type(chat_type)
         peer = Peer(id=chat_id, type=peer_type)
@@ -1209,10 +1153,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the delete operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer_type = self._resolve_peer_type(chat_type)
         peer = Peer(id=chat_id, type=peer_type)
@@ -1241,10 +1181,6 @@ class Client:
 
         Returns:
             List[aiobale.types.Message]: List of loaded messages.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         chat = self._build_chat(chat_id, chat_type)
         peer = self._resolve_peer(chat)
@@ -1293,10 +1229,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the pin operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         chat = self._build_chat(chat_id, chat_type)
         peer = self._resolve_peer(chat)
@@ -1323,10 +1255,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the unpin operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         chat = self._build_chat(chat_id, chat_type)
         peer = self._resolve_peer(chat)
@@ -1355,10 +1283,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the unpin all operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         chat = self._build_chat(chat_id, chat_type)
         peer = self._resolve_peer(chat)
@@ -1383,10 +1307,6 @@ class Client:
 
         Returns:
             List[aiobale.types.Message]: List of pinned messages.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         chat = self._build_chat(chat_id, chat_type)
         peer = self._resolve_peer(chat)
@@ -1411,10 +1331,6 @@ class Client:
 
         Returns:
             List[aiobale.types.PeerData]: List of dialog data.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = LoadDialogs(
             offset_date=offset_date, limit=limit, exclude_pinned=exclude_pinned
@@ -1432,10 +1348,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = EditName(name=name)
         return await self(call)
@@ -1449,10 +1361,6 @@ class Client:
 
         Returns:
             bool: True if available, False otherwise.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = CheckNickName(nick_name=username)
 
@@ -1468,10 +1376,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = EditNickName(nick_name=StringValue(value=username))
         return await self(call)
@@ -1485,10 +1389,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = EditAbout(about=StringValue(value=about))
         return await self(call)
@@ -1504,10 +1404,6 @@ class Client:
 
         Returns:
             List[aiobale.types.FullUser]: List of FullUser objects containing detailed user information.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peers = [
             InfoPeer(id=peer.id, type=peer.type) if isinstance(peer, Peer) else peer
@@ -1529,10 +1425,6 @@ class Client:
 
         Returns:
             aiobale.types.FullUser: Detailed information about the user.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peers = [InfoPeer(id=chat_id, type=chat_type)]
         result = await self.load_full_users(peers=peers)
@@ -1547,10 +1439,6 @@ class Client:
 
         Returns:
             aiobale.types.FullUser: Detailed information about the current user.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peers = [InfoPeer(id=self.id, type=ChatType.PRIVATE)]
         result = await self.load_full_users(peers=peers)
@@ -1565,10 +1453,6 @@ class Client:
 
         Returns:
             List[aiobale.types.User]: List of User objects with basic information.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peers = [
             InfoPeer(id=peer.id, type=peer.type) if isinstance(peer, Peer) else peer
@@ -1590,10 +1474,6 @@ class Client:
 
         Returns:
             aiobale.types.User: Basic information about the user.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peers = [InfoPeer(id=chat_id, type=chat_type)]
         result = await self.load_users(peers=peers)
@@ -1608,10 +1488,6 @@ class Client:
 
         Returns:
             aiobale.types.User: Basic information about the current user.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peers = [InfoPeer(id=self.id, type=ChatType.PRIVATE)]
         result = await self.load_users(peers=peers)
@@ -1630,10 +1506,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = EditUserLocalName(user_id=user_id, name=name, access_hash=access_hash)
 
@@ -1648,10 +1520,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the block operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         info_peer = InfoPeer(id=user_id, type=ChatType.PRIVATE)
         call = BlockUser(peer=info_peer)
@@ -1667,10 +1535,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the unblock operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         info_peer = InfoPeer(id=user_id, type=ChatType.PRIVATE)
         call = UnblockUser(peer=info_peer)
@@ -1686,10 +1550,6 @@ class Client:
 
         Returns:
             List[aiobale.types.InfoPeer]: List of blocked users.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = LoadBlockedUsers()
         result: BlockedUsersResponse = await self(call)
@@ -1704,10 +1564,6 @@ class Client:
 
         Returns:
             List[aiobale.types.InfoPeer]: List of contacts.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = GetContacts()
         result: BannedUsersResponse = await self(call)
@@ -1724,10 +1580,6 @@ class Client:
 
         Returns:
             Optional[aiobale.types.InfoPeer]: The found contact, or None if not found.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         phone_number = phone_number.replace("+", "")
         call = SearchContact(request=phone_number)
@@ -1746,10 +1598,6 @@ class Client:
             aiobale.types.responses.ContactResponse: The response containing the found contact.
                 - If the username belongs to a user or bot, the result will be in the `user` field.
                 - If the username belongs to a group or channel, the result will be in the `group` field.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = SearchContact(request=username)
         return await self(call)
@@ -1765,10 +1613,6 @@ class Client:
 
         Returns:
             List[aiobale.types.InfoPeer]: List of imported contacts.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         contacts = [
             ContactData(phone_number=contact[0], name=StringValue(value=contact[1]))
@@ -1788,10 +1632,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the reset operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = ResetContacts()
         return await self(call)
@@ -1805,10 +1645,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the remove operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = RemoveContact(user_id=user_id)
         return await self(call)
@@ -1822,10 +1658,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the add operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = AddContact(user_id=user_id)
         return await self(call)
@@ -1840,10 +1672,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = SetOnline(is_online=is_online, timeout=timeout)
         return await self(call)
@@ -1866,10 +1694,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the report operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer_report = PeerReport(
             source=PeerSource.DIALOGS, peer=Peer(id=chat_id, type=chat_type)
@@ -1898,10 +1722,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the report operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         other_messages = [self._ensure_other_message(message) for message in messages]
 
@@ -1932,10 +1752,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the report operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         return await self.report_messages(
             chat_id=chat_id,
@@ -1962,10 +1778,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Note:
             This method is used to indicate any activity (not just typing), such as sending a photo, uploading a file, etc.
             The meaning depends on the selected TypingMode.
@@ -1990,10 +1802,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Note:
             This method is used to indicate stopping any activity (not just typing), such as sending a photo, uploading a file, etc.
             The meaning depends on the selected TypingMode.
@@ -2015,10 +1823,6 @@ class Client:
 
         Returns:
             List[aiobale.types.ExtKeyValue]: A list of key-value pairs representing user/session parameters.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = GetParameters()
         result: ParametersResponse = await self(call)
@@ -2037,10 +1841,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         call = EditParameter(key=key, value=value)
         return await self(call)
@@ -2063,10 +1863,6 @@ class Client:
 
         Returns:
             List[aiobale.types.MessageReactions]: List of reactions data for each message.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         other_messages = [self._ensure_other_message(message) for message in messages]
         peer = Peer(id=chat_id, type=chat_type)
@@ -2096,10 +1892,6 @@ class Client:
 
         Returns:
             Optional[aiobale.types.MessageReactions]: Reactions for the message, or None if not found.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         result = await self.get_messages_reactions(
             messages=[message], chat_id=chat_id, chat_type=chat_type
@@ -2130,10 +1922,6 @@ class Client:
 
         Returns:
             List[aiobale.types.ReactionData]: List of users and their reaction details.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer = Peer(id=chat_id, type=chat_type)
         call = GetMessageReactionsList(
@@ -2165,10 +1953,6 @@ class Client:
 
         Returns:
             List[aiobale.types.Reaction]: List of reactions after the operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer = Peer(id=chat_id, type=chat_type)
         call = MessageSetReaction(
@@ -2195,10 +1979,6 @@ class Client:
 
         Returns:
             List[aiobale.types.Reaction]: List of reactions after removal.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer = Peer(id=chat_id, type=chat_type)
         call = MessageRemoveReaction(
@@ -2223,10 +2003,6 @@ class Client:
 
         Returns:
             List[aiobale.types.MessageViews]: List of view counts for each message.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         other_messages = [self._ensure_other_message(message) for message in messages]
         peer = Peer(id=chat_id, type=2)
@@ -2249,10 +2025,6 @@ class Client:
 
         Returns:
             List[aiobale.types.MessageViews]: View count for the message.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         return await self.get_messages_views(messages=[message], chat_id=chat_id)
 
@@ -2267,10 +2039,6 @@ class Client:
 
         Returns:
             aiobale.types.FullGroup: Detailed information about the group.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer = ShortPeer(id=chat_id)
         call = GetFullGroup(group=peer)
@@ -2299,10 +2067,6 @@ class Client:
 
         Returns:
             List[aiobale.types.Member]: List of group/channel members.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         peer = ShortPeer(id=chat_id)
 
@@ -2345,10 +2109,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.GroupCreatedResponse: The result of the group/channel creation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
         """
         random_id = generate_id()
         users = [ShortPeer(id=v) for v in users]
@@ -2379,10 +2139,6 @@ class Client:
         Returns:
             aiobale.types.responses.GroupCreatedResponse: The result of the channel creation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method is used to create a channel, which is similar to a group but intended for broadcasting messages to a large audience. You can specify a title, an optional public username, and initial members. For more details about channel settings and restrictions, check our website.
         """
         return await self.create_group(
@@ -2399,10 +2155,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.InviteResponse: The result of the invite operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         This method allows you to invite multiple users to a group or channel. The `users` argument should be a tuple of user IDs. For more information about invitation limits and restrictions, check our website.
         """
@@ -2424,10 +2176,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Use this method to change the title of an existing group or channel. For title length limits and formatting rules, check our website.
         """
         call = EditGroupTitle(
@@ -2445,10 +2193,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         This method updates the description or "about" section for a group or channel. For content guidelines and maximum length, check our website.
         """
@@ -2470,10 +2214,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method sets the group or channel restriction to PUBLIC and assigns a username, making it accessible via a public link. For username rules and restrictions, check our website.
         """
         call = SetRestriction(
@@ -2493,10 +2233,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method sets the group or channel restriction to PRIVATE, removing any public username and link. For more details about privacy settings, check our website.
         """
         call = SetRestriction(
@@ -2514,10 +2250,6 @@ class Client:
         Returns:
             str: The invite URL.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Use this method to get the current invite link for a group or channel. This link can be shared with others to join the group. For more information about link expiration and usage, check our website.
         """
         call = GetGroupInviteURL(group=ShortPeer(id=chat_id))
@@ -2534,10 +2266,6 @@ class Client:
         Returns:
             str: The new invite URL.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method invalidates the existing invite link and creates a new one. Use this to reset access if the link has been shared too widely. For more details, check our website.
         """
         call = RevokeInviteURL(group=ShortPeer(id=chat_id))
@@ -2553,10 +2281,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the leave operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to exit a group or channel. You will no longer receive messages from it. For more information about leaving and rejoining, check our website.
         """
@@ -2576,10 +2300,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the transfer operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method allows the current owner to assign ownership to another user. Only the owner can perform this action. For more details about ownership transfer, check our website.
         """
         call = TransferOwnership(group=ShortPeer(id=chat_id), new_owner=new_owner)
@@ -2598,10 +2318,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to promote a user to admin status. You can optionally assign a custom admin name.
         Note: To assign specific admin rights and permissions, you must use the `set_member_permissions` method after creating the admin.
@@ -2625,10 +2341,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method demotes an admin to a regular member. For more information about admin management, check our website.
         """
         call = RemoveUserAdmin(group=ShortPeer(id=chat_id), user=ShortPeer(id=user_id))
@@ -2644,10 +2356,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the kick operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to forcibly remove a user from a group or channel. For more details about kicking users and restrictions, check our website.
         """
@@ -2668,10 +2376,6 @@ class Client:
         Returns:
             aiobale.types.responses.JoinedGroupResponse: The result of the join operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Use this method to join a group or channel via an invite link. The token is extracted automatically from the URL if needed. For more information about joining groups, check our website.
         """
         token = extract_join_token(token_or_url)
@@ -2687,10 +2391,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.JoinedGroupResponse: The result of the join operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         This method allows you to join a public group or channel directly by its ID. For more details about public chats, check our website.
         """
@@ -2711,10 +2411,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the pin operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to highlight important messages by pinning them in a group or channel. For more information about pin limits and visibility, check our website.
         """
@@ -2740,10 +2436,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the unpin operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method removes a pinned message from the group or channel. For more details about pin management, check our website.
         """
         call = RemoveSinglePin(
@@ -2762,10 +2454,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to clear all pinned messages at once. For more information about pin limits and management, check our website.
         """
@@ -2786,10 +2474,6 @@ class Client:
         Returns:
             aiobale.types.responses.GetPinsResponse: The response containing pinned messages.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Use this method to view all pinned messages, with support for pagination. For more details about pin history and limits, check our website.
         """
         call = GetPins(group=ShortPeer(id=chat_id), page=page, limit=limit)
@@ -2805,10 +2489,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the edit operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         This method changes the public username, which affects the group's or channel's public link. For username rules and restrictions, check our website.
         """
@@ -2827,10 +2507,6 @@ class Client:
 
         Returns:
             aiobale.types.Permissions: The permissions object for the member.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to view what actions a member can perform in a group or channel. For more details about permission types, check our website.
         """
@@ -2853,10 +2529,6 @@ class Client:
 
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         This method allows you to customize what a member can do, such as sending messages or managing pins.
         Note: This is the only way to assign specific rights to admins in a group or channel. After creating a new admin, use this method to set their permissions and rights. For more information about permission settings, check our website.
@@ -2881,10 +2553,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Use this method to set the baseline permissions for all members. Individual permissions can still be customized. For more details, check our website.
         """
         call = SetGroupDefaultPermissions(
@@ -2903,10 +2571,6 @@ class Client:
         Returns:
             List[aiobale.types.BanData]: List of banned users and their ban details.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Use this method to view users who have been banned, including ban reasons and durations. For more details about banning policies, check our website.
         """
         call = GetBannedUsers(group=ShortPeer(id=chat_id))
@@ -2924,10 +2588,6 @@ class Client:
         Returns:
             aiobale.types.responses.DefaultResponse: The result of the unban operation.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         This method restores access for a previously banned user. For more information about ban management, check our website.
         """
         call = UnbanUser(group=ShortPeer(id=chat_id), user=ShortPeer(id=user_id))
@@ -2942,10 +2602,6 @@ class Client:
 
         Returns:
             aiobale.types.FullGroup: Detailed information about the group or channel.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to view group/channel details before joining, such as title and member count. For more information about previews, check our website.
         """
@@ -2964,10 +2620,6 @@ class Client:
 
         Returns:
             Optional[aiobale.types.FileURL]: File URL and metadata, or None if not found.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Use this method to retrieve download links for existing media such as photos, videos, or documents.
         """
@@ -2994,10 +2646,6 @@ class Client:
 
         Returns:
             Optional[BinaryIO]: The file content in a BinaryIO object if destination was None or BinaryIO. Otherwise, None.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         This method is suitable for downloading files directly into memory or saving them to disk. Make sure to use `seek=False`
         if you want to avoid rewinding the stream.
@@ -3051,10 +2699,6 @@ class Client:
         Returns:
             aiobale.types.FileUploadInfo: Contains upload URL, chunk size, and file ID.
 
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
-
         Note:
             You may omit `chat` and `send_type` when the upload is not directly tied to a specific message or chat —
             for example, when uploading a profile picture or avatar.
@@ -3092,10 +2736,6 @@ class Client:
 
         Returns:
             aiobale.types.FileDetails: Information about the uploaded file including file ID, name, size, and MIME type.
-
-        Raises:
-            BaleError: If the server returns an error.
-            AiobaleError: For client-side errors.
 
         Note:
             `chat_id`, `chat_type`, and `send_type` can be omitted when uploading files for non-message-related purposes,

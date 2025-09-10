@@ -52,7 +52,7 @@ class AiohttpSession(BaseSession):
 
     def check_session(self) -> None:
         if not self._session or self._session.closed:
-            session_timeout = aiohttp.ClientTimeout(total=None)
+            session_timeout = aiohttp.ClientTimeout(total=self.timeout)
             self._session = aiohttp.ClientSession(
                 timeout=session_timeout, proxy=self._proxy
             )
@@ -135,6 +135,7 @@ class AiohttpSession(BaseSession):
         method: BaleMethod[BaleType],
         just_bale_type: bool = False,
         token: Optional[str] = None,
+        timeout: Optional[int] = None,
     ) -> Union[bytes, str, BaleType]:
         self.check_session()
 
@@ -151,7 +152,9 @@ class AiohttpSession(BaseSession):
         data = method.model_dump(by_alias=True, exclude_none=True)
         payload = add_header(self.encoder(data))
 
-        req = await self._session.post(url=url, headers=headers, data=payload)
+        req = await self._session.post(
+            url=url, headers=headers, data=payload, timeout=timeout or self.timeout
+        )
         content = await req.read()
         grpc_message = req.headers.get("grpc-message")
         if grpc_message is not None:
@@ -244,7 +247,7 @@ class AiohttpSession(BaseSession):
         if self._session and not self._session.closed:
             await self._session.close()
 
-        session_timeout = aiohttp.ClientTimeout(total=None)
+        session_timeout = aiohttp.ClientTimeout(total=self.timeout)
         self._session = aiohttp.ClientSession(
             timeout=session_timeout, proxy=self._proxy
         )
