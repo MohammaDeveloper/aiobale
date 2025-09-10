@@ -3,7 +3,7 @@ class AiobaleError(Exception):
     pass
 
 
-class BaleError(AiobaleError):
+class BaleAPIError(AiobaleError):
     """
     Exception raised when an error occurs in Bale service.
 

@@ -6,7 +6,7 @@ from typing import Any, AsyncGenerator, Callable, Optional, Dict, Union
 
 from ...methods import BaleMethod, BaleType
 from ...utils import add_header, clean_grpc
-from ...exceptions import AiobaleError, BaleError
+from ...exceptions import AiobaleError, BaleAPIError
 from ...types import FileInput
 from .base import BaseSession
 
@@ -118,7 +118,7 @@ class AiohttpSession(BaseSession):
         try:
             response = await asyncio.wait_for(future, timeout=timeout or self.timeout)
             if response.error:
-                raise BaleError(response.error.message, response.error.topic)
+                raise BaleAPIError(response.error.message, response.error.topic)
 
             return self.decode_result(response.result, method)
 
@@ -156,7 +156,7 @@ class AiohttpSession(BaseSession):
         grpc_message = req.headers.get("grpc-message")
         if grpc_message is not None:
             if just_bale_type:
-                raise BaleError(grpc_message, -1)
+                raise BaleAPIError(grpc_message, -1)
 
             return grpc_message
 

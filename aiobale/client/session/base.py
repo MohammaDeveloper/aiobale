@@ -26,7 +26,7 @@ from ...types import (
     MetaList,
     Response,
 )
-from ...exceptions import BaleError
+from ...exceptions import BaleAPIError
 
 if TYPE_CHECKING:
     from ..client import Client
