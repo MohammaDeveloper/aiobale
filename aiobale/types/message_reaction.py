@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic import Field, model_validator
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, TYPE_CHECKING, Optional
 
 from .base import BaleObject
 from .reaction import Reaction
@@ -18,7 +18,7 @@ class MessageReactions(BaleObject):
         All timestamps are represented as Unix timestamps in **milliseconds**.
     """
 
-    id: int = Field(..., alias="1")
+    id: Optional[int] = Field(None, alias="1")
     """
     The unique identifier of the message this reaction data is related to.
     Used to associate reactions with their corresponding message.
