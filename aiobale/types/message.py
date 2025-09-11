@@ -41,7 +41,7 @@ class Message(BaleObject):
     date: int = Field(..., alias="3")
     """Timestamp (in milliseconds) when the message was sent."""
 
-    message_id: int = Field(..., alias="4")
+    message_id: Optional[int] = Field(None, alias="4")
     """Unique identifier for this message within the chat."""
 
     content: MessageContent = Field(..., alias="5")
