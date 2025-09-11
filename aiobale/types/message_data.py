@@ -28,7 +28,7 @@ class MessageData(BaleObject):
     sender_id: int = Field(..., alias="1")
     """The unique identifier of the sender (user or bot) who created the message."""
 
-    message_id: int = Field(..., alias="2")
+    message_id: Optional[int] = Field(None, alias="2")
     """The unique identifier of this message within the chat."""
 
     date: int = Field(..., alias="3")
