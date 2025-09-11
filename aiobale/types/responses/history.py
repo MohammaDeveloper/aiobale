@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import List, Dict, Any, TYPE_CHECKING
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationError, field_validator, model_validator
 
 from ..message_data import MessageData
 from ..base import BaleObject
@@ -24,6 +24,19 @@ class HistoryResponse(BaleObject):
     This field is always a list. If the server returns a single message,
     it will be wrapped in a list automatically.
     """
+
+    @field_validator("data", mode="before")
+    @classmethod
+    def ignore_invalid_items(cls, v):
+        if not isinstance(v, list):
+            return []
+        valid_items = []
+        for item in v:
+            try:
+                valid_items.append(MessageData.model_validate(item))
+            except ValidationError:
+                continue
+        return valid_items
 
     @model_validator(mode="before")
     @classmethod
@@ -58,9 +71,6 @@ class HistoryResponse(BaleObject):
         # This init is only used for type checking and IDE autocomplete.
         # It will not be included in runtime behavior.
         def __init__(
-            __pydantic__self__,
-            *,
-            data: List[MessageData] = ...,
-            **__pydantic_kwargs
+            __pydantic__self__, *, data: List[MessageData] = ..., **__pydantic_kwargs
         ) -> None:
             super().__init__(data=data, **__pydantic_kwargs)
