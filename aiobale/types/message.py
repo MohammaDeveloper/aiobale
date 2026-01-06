@@ -17,6 +17,7 @@ from .reaction import Reaction
 from .file_details import FileDetails
 from .file_input import FileInput
 from .gift_packet import GiftPacket
+from .gold_gift_packet import GoldGiftPacket
 from .inline_keyboard import InlineKeyboardMarkup
 
 if TYPE_CHECKING:
@@ -120,6 +121,13 @@ class Message(BaleObject):
         Returns the document content of the message if available.
         """
         return self.content.gift
+
+    @property
+    def gold_gift(self) -> Optional[GoldGiftPacket]:
+        """
+        Returns the document content of the message if available.
+        """
+        return self.content.gold_gift
 
     @model_validator(mode="after")
     def attach_chat_to_reply(self) -> Message:

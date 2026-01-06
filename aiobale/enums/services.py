@@ -33,5 +33,6 @@ class Services(str, Enum):
     """Represents the file management service."""
     
     GIFT_PACKET = "bale.giftpacket.v1.GiftPacket"
+    GOLD_GIFT_PACKET = "bale.balebank.v1.GoldGiftPacket"
     KIFPOOL = "bale.kifpool.v1.Kifpool"
     MAGAZINE = "bale.magazine.v1.Magazine"

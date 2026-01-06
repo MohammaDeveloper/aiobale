@@ -7,6 +7,7 @@ from .base import BaleObject
 from .thumbnail import Thumbnail
 from .file_ext import DocumentsExt
 from .gift_packet import GiftPacket
+from .gold_gift_packet import GoldGiftPacket
 from .service_message import ServiceMessage
 from .inline_keyboard import InlineKeyboardMarkup
 from ..utils import generate_id
@@ -172,6 +173,7 @@ class MessageContent(BaleObject):
     service_message: Optional[ServiceMessage] = Field(None, alias="11")
     bot_message: Optional[TemplateMessage] = Field(None, alias="13")
     gift: Optional[GiftPacket] = Field(None, alias="17")
+    gold_gift: Optional[GoldGiftPacket] = Field(None, alias="28")
 
     if TYPE_CHECKING:
 
@@ -182,6 +184,7 @@ class MessageContent(BaleObject):
             epmty: bool = False,
             text: Optional[TextMessage] = None,
             gift: Optional[GiftPacket] = None,
+            gold_gift: Optional[GoldGiftPacket] = None,
             bot_message: Optional[TemplateMessage] = None,
             **__pydantic_kwargs,
         ) -> None:
@@ -190,6 +193,7 @@ class MessageContent(BaleObject):
                 text=text,
                 epmty=epmty,
                 gift=gift,
+                gold_gift=gold_gift,
                 bot_message=bot_message,
                 **__pydantic_kwargs,
             )

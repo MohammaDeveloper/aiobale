@@ -55,6 +55,7 @@ from .thumbnail import Thumbnail
 from .file_ext import VideoExt, VoiceExt, AudioExt, PhotoExt, DocumentsExt
 from .wallet import Wallet
 from .gift_packet import GiftPacket
+from .gold_gift_packet import GoldGiftPacket
 from .winner import Winner
 from .inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 from .upvote import Upvote
@@ -134,6 +135,7 @@ __all__ = (
     "DocumentsExt",
     "Wallet",
     "GiftPacket",
+    "GoldGiftPacket",
     "Winner",
     "InlineKeyboardMarkup",
     "InlineKeyboardButton",

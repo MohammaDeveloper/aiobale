@@ -74,6 +74,7 @@ from .groups import (
 from .magazine import UpvotePost, RevokeUpvotedPost, GetMessageUpvoters
 from .kifpool import GetMyKifpools
 from .giftpacket import SendGiftPacketWithWallet, OpenGiftPacket
+from .balebank import OpenGoldGiftPacket
 from .files import GetFileUrl, GetFileUploadUrl
 from .configs import EditParameter, GetParameters
 from .report import SendReport
@@ -158,6 +159,7 @@ __all__ = (
     "GetMyKifpools",
     "SendGiftPacketWithWallet",
     "OpenGiftPacket",
+    "OpenGoldGiftPacket",
     "SignOut",
     "SignUp",
     "GetMessageUpvoters",

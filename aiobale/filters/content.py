@@ -71,3 +71,26 @@ class IsGift(Filter):
             return False
 
         return event.gift is not None
+    
+
+class IsGoldGift(Filter):
+    """
+    Filter to check if the message contains a gold gift packet.
+
+    This filter returns True if the incoming event is a Message and has a gold_gift field.
+
+    Examples:
+        .. code:: python
+            @router.message(IsGoldGift())
+            async def handler(msg: Message):
+                ...
+
+    Returns:
+        bool: True if the message has a gold gift, False otherwise.
+    """
+
+    async def __call__(self, event: Any) -> bool:
+        if not isinstance(event, Message):
+            return False
+
+        return event.gold_gift is not None

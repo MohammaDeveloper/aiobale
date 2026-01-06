@@ -108,6 +108,7 @@ from ..methods import (
     GetMyKifpools,
     SendGiftPacketWithWallet,
     OpenGiftPacket,
+    OpenGoldGiftPacket,
     SignOut,
     UpvotePost,
     RevokeUpvotedPost,
@@ -3219,6 +3220,20 @@ class Client:
             receiver_token = wallet_data.wallet.token
 
         call = OpenGiftPacket(message=message, receiver_token=receiver_token)
+        return await self(call)
+
+    async def open_gold_gift(self, id: int) -> PacketResponse:
+        """
+        Opens a gold gift packet by its unique ID.
+
+        Args:
+            id (int): The unique identifier of the gold gift packet to open.
+
+        Returns:
+            PacketResponse: Contains details about the opening result, such as amount received, winners, and stats.
+        """
+        
+        call = OpenGoldGiftPacket(id=id)
         return await self(call)
 
     async def upvote_post(
